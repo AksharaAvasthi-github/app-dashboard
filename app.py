@@ -19,11 +19,33 @@ st.set_page_config(
 st.markdown(
     """
     <style>
+    /* --- Dark Theme Core --- */
     .stApp { background-color: #0f1115; color: #e6eef8; }
     .stSidebar { background-color: #0b0c0f; }
-    .css-1d391kg, h1, h2, h3, h4, h5 { color: #e6eef8 !important; }
+
+    /* --- Text and Headers --- */
+    .css-1d391kg, h1, h2, h3, h4, h5 {
+        color: #e6eef8 !important;
+    }
+
+    /* --- Layout + Spacing --- */
     .block-container {
-        padding-top: 3.5rem !important;  /* adds breathing space above headers */
+        padding-top: 3.5rem !important;     /* adds breathing space */
+        max-width: 100% !important;         /* ensures full-width resizing */
+        width: 100% !important;
+    }
+
+    /* --- Ensure all columns and charts resize dynamically --- */
+    div[data-testid="stVerticalBlock"] {
+        width: 100% !important;
+    }
+    .element-container {
+        width: 100% !important;
+    }
+
+    /* --- Smooth transitions on resize (optional polish) --- */
+    .block-container, .element-container, div[data-testid="stVerticalBlock"] {
+        transition: all 0.25s ease-in-out;
     }
     </style>
     """,
