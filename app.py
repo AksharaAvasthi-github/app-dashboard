@@ -124,65 +124,96 @@ carbon = data["carbon"]
 
 # ---------- Quick preview area (for developers) ----------
 if page == "Data":
-    st.header("📁 Loaded datasets")
+    st.header("📁 Loaded Datasets")
 
-    # Equal height grid styling
+    # Enhanced styling for dark minimal dashboard
     st.markdown("""
         <style>
         .data-container {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
         }
         .data-box {
-            background-color: #1b1e23;
-            padding: 15px;
-            border-radius: 10px;
+            background-color: #16181d;
+            padding: 18px;
+            border-radius: 12px;
             border: 1px solid #2a2d33;
-            height: 400px;
-            overflow: auto;
+            box-shadow: 0px 3px 6px rgba(0,0,0,0.25);
+            transition: all 0.3s ease;
+            height: 420px;
+            overflow-y: auto;
+        }
+        .data-box:hover {
+            transform: translateY(-3px);
+            border-color: #3a3f48;
         }
         .data-box h4 {
-            color: #e6eef8;
+            color: #a8c7fa;
             margin-bottom: 10px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            color: #e6eef8;
+        }
+        th {
+            background-color: #1e2228;
+            color: #a8c7fa;
+            padding: 6px;
+            border-bottom: 1px solid #2f333a;
+            text-align: left;
+        }
+        td {
+            padding: 5px;
+            border-bottom: 1px solid #2a2d33;
+        }
+        tr:hover {
+            background-color: #20242a;
         }
         </style>
     """, unsafe_allow_html=True)
 
+    # Grid layout for datasets
     st.markdown("""
         <div class="data-container">
             <div class="data-box">
-                <h4>Orders (orders.csv)</h4>
+                <h4>📦 Orders (orders.csv)</h4>
                 {}
             </div>
             <div class="data-box">
-                <h4>Warehouses (delivery_performance.csv)</h4>
+                <h4>🏭 Warehouses (delivery_performance.csv)</h4>
                 {}
             </div>
             <div class="data-box">
-                <h4>Traffic & Weather (routes_distance.csv)</h4>
+                <h4>🌦 Traffic & Weather (routes_distance.csv)</h4>
                 {}
             </div>
             <div class="data-box">
-                <h4>Vehicles (customer_feedback.csv)</h4>
+                <h4>🚚 Vehicles (customer_feedback.csv)</h4>
                 {}
             </div>
             <div class="data-box">
-                <h4>Vehicle Fleet (vehicle_fleet.csv)</h4>
+                <h4>🛞 Vehicle Fleet (vehicle_fleet.csv)</h4>
                 {}
             </div>
             <div class="data-box">
-                <h4>Warehouse Inventory</h4>
+                <h4>📊 Warehouse Inventory</h4>
                 {}
             </div>
         </div>
     """.format(
-        delivery_perf.head(6).to_html(index=False),
-        warehouses.head(6).to_html(index=False),
-        traffic_weather.head(6).to_html(index=False),
-        vehicles.head(6).to_html(index=False),
-        costs.head(6).to_html(index=False),
-        carbon.head(6).to_html(index=False)
+        delivery_perf.head(6).to_html(index=False, classes="styled-table"),
+        warehouses.head(6).to_html(index=False, classes="styled-table"),
+        traffic_weather.head(6).to_html(index=False, classes="styled-table"),
+        vehicles.head(6).to_html(index=False, classes="styled-table"),
+        costs.head(6).to_html(index=False, classes="styled-table"),
+        carbon.head(6).to_html(index=False, classes="styled-table")
     ), unsafe_allow_html=True)
 
 # ---------- Prepare and merge main dataframe (defensive) ----------
