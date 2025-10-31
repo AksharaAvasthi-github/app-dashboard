@@ -647,16 +647,16 @@ st.markdown(f"""
 
 st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- Textual Summary ---
-    st.markdown("### 🧭 Summary")
-    st.markdown(
-        """
-        - **On-time delivery performance** remains steady with minor variance in high-traffic routes.  
-        - **CO₂ emissions** are influenced primarily by vehicle type and average distance covered.  
-        - **Delay probabilities** correlate with heavy rain and storm impact regions.  
-        - **Optimization opportunity:** re-route underperforming carriers and high-emission fleets.  
-        """
-    )
+# --- Textual Summary ---
+st.markdown("### 🧭 Summary")
+st.markdown(
+    """
+    - **On-time delivery performance** remains steady with minor variance in high-traffic routes.  
+    - **CO₂ emissions** are influenced primarily by vehicle type and average distance covered.  
+    - **Delay probabilities** correlate with heavy rain and storm impact regions.  
+    - **Optimization opportunity:** re-route underperforming carriers and high-emission fleets.  
+    """
+)
 
 # ---------- EXPORT PAGE ----------
 elif page == "Export":
