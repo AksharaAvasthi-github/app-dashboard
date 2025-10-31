@@ -418,7 +418,7 @@ if selected_priority:
     if 'Priority' in view_df.columns:
         view_df = view_df[view_df['Priority'].isin(selected_priority)]
 if selected_vehicle:
-        if 'Assigned_Vehicle' in view_df.columns:
+    if 'Assigned_Vehicle' in view_df.columns:
         view_df = view_df[view_df['Assigned_Vehicle'].isin(selected_vehicle)]
 if selected_date_range and order_date_col:
     view_df = view_df[
