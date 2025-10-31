@@ -1,4 +1,5 @@
 import streamlit as st
+st.write("🚀 Streamlit app started successfully")
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
