@@ -4,3 +4,8 @@ numpy==1.26.4
 streamlit==1.38.0
 matplotlib==3.9.2
 plotly==5.24.0
+seaborn==0.12.2
+folium==0.14.0
+ortools==9.9.2534
+geopy==2.3.0
+
