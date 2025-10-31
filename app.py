@@ -662,8 +662,16 @@ st.markdown(
 elif page == "Export":
     st.title("📤 Export Data")
     st.write("You can download the processed and scored dataset below.")
-    csv = view_df.to_csv(index=False).encode('utf-8')
-    st.download_button("⬇️ Download CSV", data=csv, file_name="optimized_deliveries.csv", mime="text/csv")
+    
+    # ✅ Use your final merged dataframe
+    csv = orders_full.to_csv(index=False).encode('utf-8')
+    
+    st.download_button(
+        "⬇️ Download CSV",
+        data=csv,
+        file_name="optimized_deliveries.csv",
+        mime="text/csv"
+    )
     st.success("✅ Export ready!")
 
 # ---------- Footer ----------
