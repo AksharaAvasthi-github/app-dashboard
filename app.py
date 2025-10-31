@@ -1,4 +1,3 @@
-!pip install pandas numpy scikit-learn matplotlib seaborn plotly folium ortools geopy
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
