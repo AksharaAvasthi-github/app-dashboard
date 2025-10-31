@@ -21,8 +21,10 @@ st.markdown(
     <style>
     .stApp { background-color: #0f1115; color: #e6eef8; }
     .stSidebar { background-color: #0b0c0f; }
-    .css-1d391kg { color: #e6eef8; } /* headers */
-    .block-container { padding-top: 1rem; }
+    .css-1d391kg, h1, h2, h3, h4, h5 { color: #e6eef8 !important; }
+    .block-container {
+        padding-top: 3.5rem !important;  /* adds breathing space above headers */
+    }
     </style>
     """,
     unsafe_allow_html=True,
