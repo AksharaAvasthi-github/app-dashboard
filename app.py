@@ -616,56 +616,54 @@ elif page == "Insights":
             avg_co2 = costs["CO2_Emissions_Kg_per_KM"].mean()
             st.metric("Avg CO₂ / KM", f"{avg_co2:.2f} kg")
 
-# --- Insight Cards ---
-st.markdown('<div class="insight-container">', unsafe_allow_html=True)
+    # --- Insight Cards ---
+    st.markdown('<div class="insight-container">', unsafe_allow_html=True)
 
-# Precompute metrics safely
-on_time_rate = (df["Delivery_Status"].eq("On-Time").mean() * 100) if "Delivery_Status" in df.columns else 0
-avg_delay_prob = (df["delay_prob"].mean() * 100) if "delay_prob" in df.columns else 0
-max_priority = df["priority_score"].max() if "priority_score" in df.columns else 0
-total_co2 = orders_full["Total_CO2_Kg"].sum() if "Total_CO2_Kg" in orders_full.columns else 0
+    # Precompute metrics safely
+    on_time_rate = (df["Delivery_Status"].eq("On-Time").mean() * 100) if "Delivery_Status" in df.columns else 0
+    avg_delay_prob = (df["delay_prob"].mean() * 100) if "delay_prob" in df.columns else 0
+    max_priority = df["priority_score"].max() if "priority_score" in df.columns else 0
+    total_co2 = orders_full["Total_CO2_Kg"].sum() if "Total_CO2_Kg" in orders_full.columns else 0
 
-# Display insight cards
-st.markdown(f"""
-    <div class="insight-card">
-        <div class="insight-title">🚚 On-Time Delivery Rate</div>
-        <div class="insight-value">{on_time_rate:.1f}%</div>
-    </div>
-    <div class="insight-card">
-        <div class="insight-title">💨 Average Delay Probability</div>
-        <div class="insight-value">{avg_delay_prob:.1f}%</div>
-    </div>
-    <div class="insight-card">
-        <div class="insight-title">📦 Highest Priority Deliveries</div>
-        <div class="insight-value">{max_priority}</div>
-    </div>
-    <div class="insight-card">
-        <div class="insight-title">🌍 Total Estimated CO₂ Emissions</div>
-        <div class="insight-value">{total_co2:,.0f} kg</div>
-    </div>
-""", unsafe_allow_html=True)
+    # Display insight cards
+    st.markdown(f"""
+        <div class="insight-card">
+            <div class="insight-title">🚚 On-Time Delivery Rate</div>
+            <div class="insight-value">{on_time_rate:.1f}%</div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">💨 Average Delay Probability</div>
+            <div class="insight-value">{avg_delay_prob:.1f}%</div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">📦 Highest Priority Deliveries</div>
+            <div class="insight-value">{max_priority}</div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">🌍 Total Estimated CO₂ Emissions</div>
+            <div class="insight-value">{total_co2:,.0f} kg</div>
+        </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Textual Summary ---
-st.markdown("### 🧭 Summary")
-st.markdown(
-    """
-    - **On-time delivery performance** remains steady with minor variance in high-traffic routes.  
-    - **CO₂ emissions** are influenced primarily by vehicle type and average distance covered.  
-    - **Delay probabilities** correlate with heavy rain and storm impact regions.  
-    - **Optimization opportunity:** re-route underperforming carriers and high-emission fleets.  
-    """
-)
+    # --- Textual Summary ---
+    st.markdown("### 🧭 Summary")
+    st.markdown(
+        """
+        - **On-time delivery performance** remains steady with minor variance in high-traffic routes.  
+        - **CO₂ emissions** are influenced primarily by vehicle type and average distance covered.  
+        - **Delay probabilities** correlate with heavy rain and storm impact regions.  
+        - **Optimization opportunity:** re-route underperforming carriers and high-emission fleets.  
+        """
+    )
 
 # ---------- EXPORT PAGE ----------
 elif page == "Export":
     st.title("📤 Export Data")
     st.write("You can download the processed and scored dataset below.")
-    
-    # ✅ Use your final merged dataframe
+
     csv = orders_full.to_csv(index=False).encode('utf-8')
-    
     st.download_button(
         "⬇️ Download CSV",
         data=csv,
@@ -674,7 +672,6 @@ elif page == "Export":
     )
     st.success("✅ Export ready!")
 
-# ---------- Footer ----------
+# ---------- FOOTER ----------
 st.markdown("---")
 st.caption("✨ Developed with ❤️ by Akshara | Powered by Streamlit & Plotly ✨")
-
