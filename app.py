@@ -129,6 +129,8 @@ orders_full = orders_full.merge(
     on='Order_ID',
     how='left'
 )
+st.write("🔹 orders_with_co2 columns:", list(orders_with_co2.columns))
+st.write("🔹 orders_full columns BEFORE SCALING:", list(orders_full.columns))
 
 from sklearn.preprocessing import MinMaxScaler
 scaler = MinMaxScaler()
