@@ -101,21 +101,28 @@ carbon = data["carbon"]
 # ---------- Quick preview area (for developers) ----------
 if page == "Data":
     st.header("📁 Loaded datasets")
-    left, right = st.columns(2)
-    with left:
-        st.subheader("delivery_perf (orders.csv)")
-        st.dataframe(delivery_perf.head(8))
-        st.subheader("warehouses (delivery_performance.csv)")
+
+    # Define a 3-column layout (for better horizontal balance)
+    col1, col2, col3 = st.columns(3, gap="large")
+
+    with col1:
+        st.subheader("Orders (orders.csv)")
+        st.dataframe(delivery_perf.head(6))
+        st.subheader("Warehouses (delivery_performance.csv)")
         st.dataframe(warehouses.head(6))
-        st.subheader("traffic_weather (routes_distance.csv)")
+
+    with col2:
+        st.subheader("Traffic & Weather (routes_distance.csv)")
         st.dataframe(traffic_weather.head(6))
-    with right:
-        st.subheader("vehicles (customer_feedback.csv)")
+        st.subheader("Vehicles (customer_feedback.csv)")
         st.dataframe(vehicles.head(6))
-        st.subheader("vehicle fleet (vehicle_fleet.csv)")
+
+    with col3:
+        st.subheader("Vehicle Fleet (vehicle_fleet.csv)")
         st.dataframe(costs.head(6))
-        st.subheader("warehouse inventory")
-        st.dataframe(carbon.head(4))
+        st.subheader("Warehouse Inventory")
+        st.dataframe(carbon.head(6))
+
 
 # ---------- Prepare and merge main dataframe (defensive) ----------
 # Start from delivery_perf and progressively merge
