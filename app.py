@@ -102,27 +102,64 @@ carbon = data["carbon"]
 if page == "Data":
     st.header("📁 Loaded datasets")
 
-    # Define a 3-column layout (for better horizontal balance)
-    col1, col2, col3 = st.columns(3, gap="large")
+    # Equal height grid styling
+    st.markdown("""
+        <style>
+        .data-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .data-box {
+            background-color: #1b1e23;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #2a2d33;
+            height: 400px;
+            overflow: auto;
+        }
+        .data-box h4 {
+            color: #e6eef8;
+            margin-bottom: 10px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-    with col1:
-        st.subheader("Orders (orders.csv)")
-        st.dataframe(delivery_perf.head(6))
-        st.subheader("Warehouses (delivery_performance.csv)")
-        st.dataframe(warehouses.head(6))
-
-    with col2:
-        st.subheader("Traffic & Weather (routes_distance.csv)")
-        st.dataframe(traffic_weather.head(6))
-        st.subheader("Vehicles (customer_feedback.csv)")
-        st.dataframe(vehicles.head(6))
-
-    with col3:
-        st.subheader("Vehicle Fleet (vehicle_fleet.csv)")
-        st.dataframe(costs.head(6))
-        st.subheader("Warehouse Inventory")
-        st.dataframe(carbon.head(6))
-
+    st.markdown("""
+        <div class="data-container">
+            <div class="data-box">
+                <h4>Orders (orders.csv)</h4>
+                {}
+            </div>
+            <div class="data-box">
+                <h4>Warehouses (delivery_performance.csv)</h4>
+                {}
+            </div>
+            <div class="data-box">
+                <h4>Traffic & Weather (routes_distance.csv)</h4>
+                {}
+            </div>
+            <div class="data-box">
+                <h4>Vehicles (customer_feedback.csv)</h4>
+                {}
+            </div>
+            <div class="data-box">
+                <h4>Vehicle Fleet (vehicle_fleet.csv)</h4>
+                {}
+            </div>
+            <div class="data-box">
+                <h4>Warehouse Inventory</h4>
+                {}
+            </div>
+        </div>
+    """.format(
+        delivery_perf.head(6).to_html(index=False),
+        warehouses.head(6).to_html(index=False),
+        traffic_weather.head(6).to_html(index=False),
+        vehicles.head(6).to_html(index=False),
+        costs.head(6).to_html(index=False),
+        carbon.head(6).to_html(index=False)
+    ), unsafe_allow_html=True)
 
 # ---------- Prepare and merge main dataframe (defensive) ----------
 # Start from delivery_perf and progressively merge
