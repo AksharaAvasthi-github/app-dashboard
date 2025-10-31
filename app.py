@@ -616,14 +616,16 @@ elif page == "Insights":
             avg_co2 = costs["CO2_Emissions_Kg_per_KM"].mean()
             st.metric("Avg CO₂ / KM", f"{avg_co2:.2f} kg")
 
-    # --- Insight Cards ---
-    st.markdown('<div class="insight-container">', unsafe_allow_html=True)
+# --- Insight Cards ---
+st.markdown('<div class="insight-container">', unsafe_allow_html=True)
 
-    on_time_rate = (df["Delivery_Status"].eq("On-Time").mean() * 100) if "Delivery_Status" in df.columns else 0
+# Precompute metrics safely
+on_time_rate = (df["Delivery_Status"].eq("On-Time").mean() * 100) if "Delivery_Status" in df.columns else 0
 avg_delay_prob = (df["delay_prob"].mean() * 100) if "delay_prob" in df.columns else 0
 max_priority = df["priority_score"].max() if "priority_score" in df.columns else 0
 total_co2 = orders_full["Total_CO2_Kg"].sum() if "Total_CO2_Kg" in orders_full.columns else 0
 
+# Display insight cards
 st.markdown(f"""
     <div class="insight-card">
         <div class="insight-title">🚚 On-Time Delivery Rate</div>
@@ -643,7 +645,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
     # --- Textual Summary ---
     st.markdown("### 🧭 Summary")
