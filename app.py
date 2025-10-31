@@ -92,6 +92,7 @@ st.dataframe(df[['Order_ID', 'Order_Weight_KG', 'Origin', 'Assigned_Vehicle']].h
 
 orders_df = df
 vehicles_df = costs
+st.write("✅ orders_with_co2 created:", orders_with_co2.shape)
 
 orders_with_co2 = orders_df.merge(
     vehicles_df[['Vehicle_ID', 'CO2_Emissions_Kg_per_KM']],
@@ -99,6 +100,8 @@ orders_with_co2 = orders_df.merge(
     right_on='Vehicle_ID',
     how='left'
 )
+st.write("✅ after merging delivery_perf:", orders_full.shape)
+
 
 orders_with_co2['Total_CO2_Kg'] = orders_with_co2['CO2_Emissions_Kg_per_KM'] * orders_with_co2['Distance_KM']
 
@@ -106,6 +109,8 @@ orders_full = orders_with_co2.merge(
     delivery_perf[['Order_ID', 'Order_Value_INR', 'Origin', 'Destination', 'Priority']],
     on='Order_ID', how='left'
 )
+st.write("✅ after merging traffic_weather:", orders_full.shape)
+
 
 orders_full = orders_full.merge(
     traffic_weather[['Order_ID', 'Fuel_Consumption_L', 'Toll_Charges_INR', 'Traffic_Delay_Minutes', 'Weather_Impact']],
@@ -121,6 +126,7 @@ orders_full = orders_full.merge(
     on='Order_ID',
     how='left'
 )
+st.write("✅ after merging warehouses:", orders_full.shape)
 
 orders_full.rename(columns={'Delivery_Cost_INR': 'Total_Delivery_Cost_INR'}, inplace=True)
 
