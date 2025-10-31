@@ -559,6 +559,7 @@ elif page == "Visualizations":
         st.plotly_chart(fig_bar, use_container_width=True)
 
 # ---------- INSIGHTS PAGE ----------
+# ---------- INSIGHTS PAGE ----------
 elif page == "Insights":
     st.header("📊 Insights & Analysis")
     st.markdown(
@@ -599,7 +600,7 @@ elif page == "Insights":
         unsafe_allow_html=True
     )
 
-    # --- KPI cards (dynamic metrics) ---
+    # --- KPI cards ---
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("Total Orders", f"{len(delivery_perf):,}")
@@ -619,13 +620,12 @@ elif page == "Insights":
     # --- Insight Cards ---
     st.markdown('<div class="insight-container">', unsafe_allow_html=True)
 
-    # Precompute metrics safely
-    on_time_rate = (df["Delivery_Status"].eq("On-Time").mean() * 100) if "Delivery_Status" in df.columns else 0
-    avg_delay_prob = (df["delay_prob"].mean() * 100) if "delay_prob" in df.columns else 0
-    max_priority = df["priority_score"].max() if "priority_score" in df.columns else 0
+    # ✅ FIXED: use orders_full instead of df
+    on_time_rate = (orders_full["Delivery_Status"].eq("On-Time").mean() * 100) if "Delivery_Status" in orders_full.columns else 0
+    avg_delay_prob = (orders_full["delay_prob"].mean() * 100) if "delay_prob" in orders_full.columns else 0
+    max_priority = orders_full["priority_score"].max() if "priority_score" in orders_full.columns else 0
     total_co2 = orders_full["Total_CO2_Kg"].sum() if "Total_CO2_Kg" in orders_full.columns else 0
 
-    # Display insight cards
     st.markdown(f"""
         <div class="insight-card">
             <div class="insight-title">🚚 On-Time Delivery Rate</div>
@@ -647,7 +647,7 @@ elif page == "Insights":
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- Textual Summary ---
+    # --- Text Summary ---
     st.markdown("### 🧭 Summary")
     st.markdown(
         """
@@ -657,6 +657,7 @@ elif page == "Insights":
         - **Optimization opportunity:** re-route underperforming carriers and high-emission fleets.  
         """
     )
+
 
 # ---------- EXPORT PAGE ----------
 elif page == "Export":
