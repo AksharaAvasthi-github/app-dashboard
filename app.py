@@ -1,4 +1,4 @@
-
+import streamlit as st
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -16,8 +16,8 @@ for name, df in zip(
     ["Orders", "Vehicles", "Warehouses", "Delivery Performance", "Traffic & Weather", "Costs", "Carbon/Inventory"],
     [delivery_perf, vehicles, warehouses, delivery_perf, traffic_weather, costs, carbon]
 ):
-    print(f"{name} Dataset:")
-    display(df.head())
+    st.write(f"### {name} Dataset")
+    st.dataframe(df.head())
 
 df = (delivery_perf
       .merge(warehouses, on='Order_ID', how='left')
@@ -57,7 +57,7 @@ model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
 y_pred = model.predict(X_test)
-print(classification_report(y_test, y_pred))
+st.text(classification_report(y_test, y_pred))
 
 df['delay_prob'] = model.predict_proba(X)[:,1]
 
@@ -88,7 +88,7 @@ def assign_vehicle(order):
 
 df['Assigned_Vehicle'] = df.apply(assign_vehicle, axis=1)
 
-df[['Order_ID', 'Order_Weight_KG', 'Origin', 'Assigned_Vehicle']].head(10)
+st.dataframe(df[['Order_ID', 'Order_Weight_KG', 'Origin', 'Assigned_Vehicle']].head(10))
 
 orders_df = df
 vehicles_df = costs
@@ -101,8 +101,6 @@ orders_with_co2 = orders_df.merge(
 )
 
 orders_with_co2['Total_CO2_Kg'] = orders_with_co2['CO2_Emissions_Kg_per_KM'] * orders_with_co2['Distance_KM']
-
-orders_with_co2[['Order_ID', 'Assigned_Vehicle', 'Distance_KM', 'CO2_Emissions_Kg_per_KM', 'Total_CO2_Kg']].head()
 
 orders_full = orders_with_co2.merge(
     delivery_perf[['Order_ID', 'Order_Value_INR', 'Origin', 'Destination', 'Priority']],
@@ -117,31 +115,14 @@ orders_full = orders_full.merge(
 FUEL_PRICE = 100
 orders_full['Fuel_Cost_INR'] = orders_full['Fuel_Consumption_L'] * FUEL_PRICE
 orders_full['Total_Delivery_Cost_INR'] = orders_full['Fuel_Cost_INR'] + orders_full['Toll_Charges_INR']
-orders_full.head()
 
-orders_full = merged_df.copy()
-
-orders_full = orders_full.merge(delivery_perf[['Order_ID', 'Priority', 'Order_Value_INR']],
-                                on='Order_ID', how='left')
-
-orders_full = orders_full.merge(traffic_weather[['Order_ID', 'Traffic_Delay_Minutes', 'Weather_Impact', 'Distance_KM']],
-                                on='Order_ID', how='left')
-
-orders_full = orders_full.merge(warehouses[['Order_ID', 'Delivery_Cost_INR']],
-                                on='Order_ID',
-                                how='left')
-
-orders_full.rename(columns={'Delivery_Cost_INR': 'Total_Delivery_Cost_INR'}, inplace=True)
-
-orders_full = merged_df.merge(
+orders_full = orders_full.merge(
     warehouses[['Order_ID', 'Delivery_Cost_INR']],
     on='Order_ID',
     how='left'
 )
 
-print(orders_full.columns)
-
-orders_full = orders_full.rename(columns={'Delivery_Cost_INR_y': 'Delivery_Cost_INR'})
+orders_full.rename(columns={'Delivery_Cost_INR': 'Total_Delivery_Cost_INR'}, inplace=True)
 
 orders_full = orders_full.merge(
     orders_with_co2[['Order_ID', 'Distance_KM', 'Total_CO2_Kg']],
@@ -149,10 +130,7 @@ orders_full = orders_full.merge(
     how='left'
 )
 
-orders_full.columns
-
 from sklearn.preprocessing import MinMaxScaler
-
 scaler = MinMaxScaler()
 
 if 'Total_Delivery_Cost_INR' in orders_full.columns:
@@ -177,24 +155,17 @@ orders_full['Delivery_Efficiency'] = MinMaxScaler().fit_transform(
     orders_full[['Delivery_Efficiency']]
 )
 
-orders_full[['Order_ID', 'Delivery_Efficiency']].head()
-
 orders_full = orders_full.merge(
     delivery_perf[['Order_ID', 'Priority']],
     on='Order_ID',
     how='left'
 )
 
-print(orders_full[['Order_ID', 'Priority']].head())
-
 priority_map = {'Express': 3, 'Standard': 2, 'Economy': 1}
 orders_full['Priority_Score'] = orders_full['Priority'].map(priority_map)
 
 numeric_cols = ['Distance_KM', 'Total_CO2_Kg', 'Delivery_Cost_INR', 'Priority_Score']
-scaler = MinMaxScaler()
 orders_full[numeric_cols] = scaler.fit_transform(orders_full[numeric_cols])
-
-orders_full.head()
 
 weights = {
     'Priority_Score': 0.4,
@@ -211,7 +182,6 @@ orders_full['Assignment_Score'] = (
 )
 
 orders_full = orders_full.sort_values(by='Assignment_Score', ascending=False)
-orders_full.head()
 
 vehicles_available = available_vehicles.copy()
 orders_full['Assigned_Vehicle'] = None
@@ -223,7 +193,7 @@ for idx, order in orders_full.iterrows():
     orders_full.at[idx, 'Assigned_Vehicle'] = vehicle_id
     vehicles_available = vehicles_available.iloc[1:]
 
-orders_full[['Order_ID', 'Assigned_Vehicle', 'Assignment_Score']].head(10)
+st.dataframe(orders_full[['Order_ID', 'Assigned_Vehicle', 'Assignment_Score']].head(10))
 
 orders_full = orders_full.merge(
     vehicles_df[['Vehicle_ID', 'CO2_Emissions_Kg_per_KM']],
@@ -231,5 +201,7 @@ orders_full = orders_full.merge(
     right_on='Vehicle_ID',
     how='left'
 )
+
 orders_full['Total_CO2_Kg'] = orders_full['Distance_KM'] * orders_full['CO2_Emissions_Kg_per_KM']
-orders_full[['Order_ID', 'Assigned_Vehicle', 'Distance_KM', 'CO2_Emissions_Kg_per_KM', 'Total_CO2_Kg']].head()
+
+st.dataframe(orders_full[['Order_ID', 'Assigned_Vehicle', 'Distance_KM', 'CO2_Emissions_Kg_per_KM', 'Total_CO2_Kg']].head())
