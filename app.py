@@ -1,13 +1,13 @@
 import streamlit as st
-st.write("🚀 Streamlit app started successfully")
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import MinMaxScaler
 
-# =================== DATA LOADING ===================
+st.write("🚀 Streamlit app started successfully")
+
+# Load datasets
 orders = pd.read_csv("cost_breakdown.csv")
 vehicles = pd.read_csv("customer_feedback.csv")
 warehouses = pd.read_csv("delivery_performance.csv")
@@ -16,6 +16,7 @@ traffic_weather = pd.read_csv("routes_distance.csv")
 costs = pd.read_csv("vehicle_fleet.csv")
 carbon = pd.read_csv("warehouse_inventory.csv")
 
+# Show dataset previews
 for name, df in zip(
     ["Orders", "Vehicles", "Warehouses", "Delivery Performance", "Traffic & Weather", "Costs", "Carbon/Inventory"],
     [delivery_perf, vehicles, warehouses, delivery_perf, traffic_weather, costs, carbon]
@@ -23,13 +24,14 @@ for name, df in zip(
     st.write(f"### {name} Dataset")
     st.dataframe(df.head())
 
-# =================== FEATURE ENGINEERING ===================
+# Merge data
 df = (delivery_perf
       .merge(warehouses, on='Order_ID', how='left')
-      .merge(traffic_weather[['Order_ID', 'Distance_KM', 'Traffic_Delay_Minutes', 'Weather_Impact']], on='Order_ID', how='left')
-      .merge(vehicles[['Order_ID', 'Rating', 'Issue_Category']], on='Order_ID', how='left')
+      .merge(traffic_weather[['Order_ID','Distance_KM','Traffic_Delay_Minutes','Weather_Impact']], on='Order_ID', how='left')
+      .merge(vehicles[['Order_ID','Rating','Issue_Category']], on='Order_ID', how='left')
      )
 
+# Handle missing data
 numeric_cols = ['Promised_Delivery_Days', 'Actual_Delivery_Days', 'Customer_Rating', 'Delivery_Cost_INR',
                 'Distance_KM', 'Traffic_Delay_Minutes']
 for col in numeric_cols:
@@ -41,6 +43,7 @@ for col in categorical_cols:
     if col in df.columns:
         df[col] = df[col].fillna('Unknown')
 
+# Map delivery and weather impact
 priority_map = {'On-Time': 3, 'Slightly-Delayed': 2, 'Severely-Delayed': 1}
 df['priority_score'] = df['Delivery_Status'].map(priority_map)
 
@@ -50,6 +53,7 @@ df['Weather_Impact_Score'] = df['Weather_Impact'].map(weather_map)
 
 df['delayed'] = (df['Actual_Delivery_Days'] > df['Promised_Delivery_Days']).astype(int)
 
+# Model setup
 feature_cols = ['priority_score', 'Distance_KM', 'Traffic_Delay_Minutes', 'Weather_Impact_Score',
                 'Customer_Rating', 'Delivery_Cost_INR']
 
@@ -64,8 +68,9 @@ model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 st.text(classification_report(y_test, y_pred))
 
-df['delay_prob'] = model.predict_proba(X)[:, 1]
+df['delay_prob'] = model.predict_proba(X)[:,1]
 
+# Order weight calc
 weights_map = {
     'Product_Category_Electronics': 5,
     'Product_Category_Fashion': 2,
@@ -79,6 +84,7 @@ df['Order_Weight_KG'] = sum(df[col] * weight for col, weight in weights_map.item
 
 available_vehicles = costs[costs['Status'] == 'Available'].copy()
 
+# Vehicle assignment
 def assign_vehicle(order):
     candidates = available_vehicles[available_vehicles['Capacity_KG'] >= order['Order_Weight_KG']]
     if candidates.empty:
@@ -95,25 +101,26 @@ df['Assigned_Vehicle'] = df.apply(assign_vehicle, axis=1)
 
 st.dataframe(df[['Order_ID', 'Order_Weight_KG', 'Origin', 'Assigned_Vehicle']].head(10))
 
-# =================== CO2 + COST CALCULATION ===================
 orders_df = df
 vehicles_df = costs
 
+# CO2 merge
 orders_with_co2 = orders_df.merge(
     vehicles_df[['Vehicle_ID', 'CO2_Emissions_Kg_per_KM']],
     left_on='Assigned_Vehicle',
     right_on='Vehicle_ID',
     how='left'
 )
-st.write("✅ orders_with_co2 created:", orders_with_co2.shape)
+st.success(f"✅ orders_with_co2 created: {orders_with_co2.shape}")
 
 orders_with_co2['Total_CO2_Kg'] = orders_with_co2['CO2_Emissions_Kg_per_KM'] * orders_with_co2['Distance_KM']
 
+# Merge deliveries
 orders_full = orders_with_co2.merge(
     delivery_perf[['Order_ID', 'Order_Value_INR', 'Origin', 'Destination', 'Priority']],
     on='Order_ID', how='left'
 )
-st.write("✅ after merging delivery_perf:", orders_full.shape)
+st.success(f"✅ after merging delivery_perf: {orders_full.shape}")
 
 orders_full = orders_full.merge(
     traffic_weather[['Order_ID', 'Fuel_Consumption_L', 'Toll_Charges_INR', 'Traffic_Delay_Minutes', 'Weather_Impact']],
@@ -129,7 +136,7 @@ orders_full = orders_full.merge(
     on='Order_ID',
     how='left'
 )
-st.write("✅ after merging warehouses:", orders_full.shape)
+st.success(f"✅ after merging warehouses: {orders_full.shape}")
 
 orders_full.rename(columns={'Delivery_Cost_INR': 'Total_Delivery_Cost_INR'}, inplace=True)
 
@@ -138,10 +145,11 @@ orders_full = orders_full.merge(
     on='Order_ID',
     how='left'
 )
+
 st.write("🔹 orders_with_co2 columns:", list(orders_with_co2.columns))
 st.write("🔹 orders_full columns BEFORE SCALING:", list(orders_full.columns))
 
-# =================== SCALING & SCORING ===================
+# --- FIXED SCALING SECTION ---
 scaler = MinMaxScaler()
 
 if 'Total_Delivery_Cost_INR' in orders_full.columns:
@@ -151,24 +159,30 @@ elif 'Delivery_Cost_INR' in orders_full.columns:
 elif 'Delivery_Cost_INR_x' in orders_full.columns:
     cost_col = 'Delivery_Cost_INR_x'
 else:
-    st.error("❌ No delivery cost column found in orders_full")
-    cost_col = None
+    raise KeyError("No delivery cost column found in orders_full")
 
-cols_to_normalize = ['Distance_KM', 'Total_CO2_Kg']
-if cost_col:
+cols_to_normalize = []
+for base_col in ['Distance_KM', 'Total_CO2_Kg']:
+    if base_col in orders_full.columns:
+        cols_to_normalize.append(base_col)
+    elif f"{base_col}_y" in orders_full.columns:
+        cols_to_normalize.append(f"{base_col}_y")
+
+if cost_col in orders_full.columns:
     cols_to_normalize.append(cost_col)
 
-cols_to_normalize = [col for col in cols_to_normalize if col in orders_full.columns]
-
-if len(cols_to_normalize) > 0:
+if cols_to_normalize:
     orders_full[cols_to_normalize] = scaler.fit_transform(orders_full[cols_to_normalize])
     st.success(f"✅ Scaled columns: {cols_to_normalize}")
 else:
-    st.warning("⚠️ No columns found for normalization. Skipping scaling step.")
+    st.warning("⚠️ No matching columns found to scale.")
 
-distance = orders_full['Distance_KM'] if 'Distance_KM' in orders_full.columns else 0
-co2 = orders_full['Total_CO2_Kg'] if 'Total_CO2_Kg' in orders_full.columns else 0
-cost = orders_full[cost_col] if cost_col and cost_col in orders_full.columns else 0
+# Handle missing safely
+distance = orders_full['Distance_KM'] if 'Distance_KM' in orders_full.columns else (
+    orders_full['Distance_KM_y'] if 'Distance_KM_y' in orders_full.columns else 0)
+co2 = orders_full['Total_CO2_Kg'] if 'Total_CO2_Kg' in orders_full.columns else (
+    orders_full['Total_CO2_Kg_y'] if 'Total_CO2_Kg_y' in orders_full.columns else 0)
+cost = orders_full[cost_col] if cost_col in orders_full.columns else 0
 
 orders_full['Delivery_Efficiency'] = 1 - (
     distance * 0.4 +
@@ -189,13 +203,16 @@ orders_full = orders_full.merge(
 priority_map = {'Express': 3, 'Standard': 2, 'Economy': 1}
 orders_full['Priority_Score'] = orders_full['Priority'].map(priority_map)
 
-numeric_cols = ['Distance_KM', 'Total_CO2_Kg', 'Delivery_Cost_INR', 'Priority_Score']
-numeric_cols = [col for col in numeric_cols if col in orders_full.columns]
+# Normalize numeric columns (also handle _y)
+numeric_cols = []
+for base_col in ['Distance_KM', 'Total_CO2_Kg', 'Delivery_Cost_INR']:
+    if base_col in orders_full.columns:
+        numeric_cols.append(base_col)
+    elif f"{base_col}_y" in orders_full.columns:
+        numeric_cols.append(f"{base_col}_y")
+numeric_cols.append('Priority_Score')
 
-if numeric_cols:
-    orders_full[numeric_cols] = scaler.fit_transform(orders_full[numeric_cols])
-else:
-    st.warning("⚠️ Some numeric columns missing; skipping normalization step.")
+orders_full[numeric_cols] = scaler.fit_transform(orders_full[numeric_cols])
 
 weights = {
     'Priority_Score': 0.4,
@@ -206,14 +223,14 @@ weights = {
 
 orders_full['Assignment_Score'] = (
     orders_full['Priority_Score'] * weights['Priority_Score'] -
-    orders_full['Distance_KM'] * weights['Distance_KM'] -
-    orders_full['Total_CO2_Kg'] * weights['Total_CO2_Kg'] -
-    orders_full['Delivery_Cost_INR'] * weights['Delivery_Cost_INR']
+    distance * weights['Distance_KM'] -
+    co2 * weights['Total_CO2_Kg'] -
+    cost * weights['Delivery_Cost_INR']
 )
 
 orders_full = orders_full.sort_values(by='Assignment_Score', ascending=False)
 
-# =================== FINAL VEHICLE ASSIGNMENT ===================
+# Vehicle assignment final
 vehicles_available = available_vehicles.copy()
 orders_full['Assigned_Vehicle'] = None
 
@@ -233,6 +250,6 @@ orders_full = orders_full.merge(
     how='left'
 )
 
-orders_full['Total_CO2_Kg'] = orders_full['Distance_KM'] * orders_full['CO2_Emissions_Kg_per_KM']
+orders_full['Total_CO2_Kg'] = distance * orders_full['CO2_Emissions_Kg_per_KM']
 
-st.dataframe(orders_full[['Order_ID', 'Assigned_Vehicle', 'Distance_KM', 'CO2_Emissions_Kg_per_KM', 'Total_CO2_Kg']].head())
+st.dataframe(orders_full[['Order_ID', 'Assigned_Vehicle', 'Distance_KM_y', 'CO2_Emissions_Kg_per_KM', 'Total_CO2_Kg']].head())
