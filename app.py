@@ -250,6 +250,17 @@ orders_full = orders_full.merge(
     how='left'
 )
 
-orders_full['Total_CO2_Kg'] = distance * orders_full['CO2_Emissions_Kg_per_KM']
+co2_col = None
+for possible_col in ['CO2_Emissions_Kg_per_KM', 'CO2_Emissions_Kg_per_KM_y', 'CO2_Emissions_Kg_per_KM_x']:
+    if possible_col in orders_full.columns:
+        co2_col = possible_col
+        break
 
-st.dataframe(orders_full[['Order_ID', 'Assigned_Vehicle', 'Distance_KM_y', 'CO2_Emissions_Kg_per_KM', 'Total_CO2_Kg']].head())
+if co2_col is not None:
+    distance_col = 'Distance_KM_y' if 'Distance_KM_y' in orders_full.columns else 'Distance_KM'
+    orders_full['Total_CO2_Kg'] = orders_full[distance_col] * orders_full[co2_col]
+    st.dataframe(
+        orders_full[['Order_ID', 'Assigned_Vehicle', distance_col, co2_col, 'Total_CO2_Kg']].head()
+    )
+else:
+    st.warning("⚠️ CO2 emissions column not found in merged data — skipping CO2 calculation.")
