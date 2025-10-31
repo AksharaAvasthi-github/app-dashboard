@@ -143,7 +143,12 @@ else:
     raise KeyError("No delivery cost column found in orders_full")
 
 cols_to_normalize = ['Distance_KM', 'Total_CO2_Kg', cost_col]
-orders_full[cols_to_normalize] = scaler.fit_transform(orders_full[cols_to_normalize])
+cols_to_normalize = [col for col in cols_to_normalize if col in orders_full.columns]
+
+if len(cols_to_normalize) > 0:
+    orders_full[cols_to_normalize] = scaler.fit_transform(orders_full[cols_to_normalize])
+else:
+    st.warning("No columns found for normalization. Skipping scaling step.")
 
 orders_full['Delivery_Efficiency'] = 1 - (
     orders_full['Distance_KM'] * 0.4 +
