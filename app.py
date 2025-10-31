@@ -560,25 +560,96 @@ elif page == "Visualizations":
 
 # ---------- INSIGHTS PAGE ----------
 elif page == "Insights":
-    st.title("🧠 Insights & Analysis")
+    st.header("📊 Insights & Analysis")
+    st.markdown(
+        """
+        <style>
+        .insight-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-top: 25px;
+            width: 100%;
+        }
+        .insight-card {
+            background-color: #1b1e23;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #2a2d33;
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.25);
+            transition: transform 0.2s ease-in-out;
+        }
+        .insight-card:hover {
+            transform: translateY(-3px);
+            border-color: #3a3f48;
+        }
+        .insight-title {
+            color: #e6eef8;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .insight-value {
+            color: #a8c7fa;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-    if report:
-        st.subheader("Model Performance Report")
-        st.text(report)
-    else:
-        st.info("No model performance report available.")
+    # --- KPI cards (dynamic metrics) ---
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Total Orders", f"{len(delivery_perf):,}")
+    with col2:
+        if "Delivery_Cost_INR" in warehouses.columns:
+            avg_cost = warehouses["Delivery_Cost_INR"].mean()
+            st.metric("Avg Delivery Cost", f"₹{avg_cost:,.2f}")
+    with col3:
+        if "Distance_KM" in traffic_weather.columns:
+            avg_distance = traffic_weather["Distance_KM"].mean()
+            st.metric("Avg Distance", f"{avg_distance:.1f} km")
+    with col4:
+        if "CO2_Emissions_Kg_per_KM" in costs.columns:
+            avg_co2 = costs["CO2_Emissions_Kg_per_KM"].mean()
+            st.metric("Avg CO₂ / KM", f"{avg_co2:.2f} kg")
 
-    st.markdown("#### Top 10 Most Efficient Deliveries")
-    if 'Delivery_Efficiency' in view_df.columns:
-        st.dataframe(view_df.nlargest(10, 'Delivery_Efficiency')[
-            ['Order_ID', 'Delivery_Efficiency', 'Assigned_Vehicle', 'Priority']
-        ])
+    # --- Insight Cards ---
+    st.markdown('<div class="insight-container">', unsafe_allow_html=True)
 
-    st.markdown("#### Least Efficient Deliveries")
-    if 'Delivery_Efficiency' in view_df.columns:
-        st.dataframe(view_df.nsmallest(10, 'Delivery_Efficiency')[
-            ['Order_ID', 'Delivery_Efficiency', 'Assigned_Vehicle', 'Priority']
-        ])
+    st.markdown(f"""
+        <div class="insight-card">
+            <div class="insight-title">🚚 On-Time Delivery Rate</div>
+            <div class="insight-value">{(df['Delivery_Status'].eq('On-Time').mean()*100):.1f}%</div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">💨 Average Delay Probability</div>
+            <div class="insight-value">{(df['delay_prob'].mean()*100):.1f}%</div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">📦 Highest Priority Deliveries</div>
+            <div class="insight-value">{df['priority_score'].max()}</div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-title">🌍 Total Estimated CO₂ Emissions</div>
+            <div class="insight-value">{orders_full['Total_CO2_Kg'].sum():,.0f} kg</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # --- Textual Summary ---
+    st.markdown("### 🧭 Summary")
+    st.markdown(
+        """
+        - **On-time delivery performance** remains steady with minor variance in high-traffic routes.  
+        - **CO₂ emissions** are influenced primarily by vehicle type and average distance covered.  
+        - **Delay probabilities** correlate with heavy rain and storm impact regions.  
+        - **Optimization opportunity:** re-route underperforming carriers and high-emission fleets.  
+        """
+    )
 
 # ---------- EXPORT PAGE ----------
 elif page == "Export":
