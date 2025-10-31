@@ -150,10 +150,15 @@ if len(cols_to_normalize) > 0:
 else:
     st.warning("No columns found for normalization. Skipping scaling step.")
 
+# Handle missing columns safely
+distance = orders_full['Distance_KM'] if 'Distance_KM' in orders_full.columns else 0
+co2 = orders_full['Total_CO2_Kg'] if 'Total_CO2_Kg' in orders_full.columns else 0
+cost = orders_full[cost_col] if cost_col in orders_full.columns else 0
+
 orders_full['Delivery_Efficiency'] = 1 - (
-    orders_full['Distance_KM'] * 0.4 +
-    orders_full['Total_CO2_Kg'] * 0.3 +
-    orders_full[cost_col] * 0.3
+    distance * 0.4 +
+    co2 * 0.3 +
+    cost * 0.3
 )
 
 orders_full['Delivery_Efficiency'] = MinMaxScaler().fit_transform(
